@@ -1,25 +1,17 @@
 <template>
-    <div>
-      <!-- 
-        컴포넌츠에서 props로 받은 값은 v-model로 사용이 불가능~
-        구조분해할당..등으로 별도의 데이터로 받는 과정이 필요..
-        예) computed에서 임의의 함수에서 return할 수 있게 하기. (getdata()참고)
-        예2) 자식창이 열릴 때 값을 따로.. 줄 수 있도록..
-       -->
-      <div class="mb-3 container-lg bg-secondary bg-opacity-25 rounded">
-      <div class="row">
-        <label class="col-10">게시글 수정</label>
-        <button @click="clear_all()" class="btn btn-secondary btn-sm col-1">내용 삭제</button>
-        <button @click="edit_save()" class="btn btn-warning btn-sm col-1">저장</button>
-        <button @click="go_list()" class="btn btn-primary btn-sm col-1">목록</button>
-        <button @click="del_data()" class="btn btn-danger btn-sm col-1">삭제</button>
+    <div class="mb-3 container-lg bg-opacity-25 rounded diary-edit-box">
+      <div class="row row-flex-right">
+        <button @click="go_list()" class="btn btn-sm col-1 btn-edit">일기 목록</button>
+        <button @click="edit_save()" class="btn btn-sm col-1 btn-edit">일기 저장</button>
+        <button @click="clear_all()" class="btn btn-sm col-1 btn-edit">모든 내용 지우기</button>
+        <button @click="del_data()" class="btn btn-sm col-1 btn-edit">일기 삭제</button>
       </div>
       <!-- DB data 형식
         {
           "id":8,
           "title":"999번째 항목입니다.",
           "content":"내용3 수정됨\nsaved",
-          "workday":"2023-04-25T15:00:00.000Z",
+          "writetime":"2023-04-25T15:00:00.000Z",
           //"status":null,
           //"optionid":null,
           "creator":"오현주",
@@ -29,13 +21,20 @@
         }
       -->
       <div class="row">
-        <div class="col-2">
+        <!-- <div class="col-2">
           <label class="form-label">id</label>
           <input v-model="select_data.id" class="form-control" readonly/>
-        </div>
+        </div> -->
         <div class="col-3">
           <label class="form-label">등록일</label>
-          <input type="date" v-model="select_data.workday" class="form-control" />
+          <input type="date" v-model="select_data.writetime" class="form-control" />
+        </div>
+        <div class="col-2">
+          <label class="form-label">기분</label>
+          <select class="form-select form-select-sm" aria-label="오늘의 기분 선택" v-model="select_emoji">
+            <option selected value="">오늘의 기분</option>
+            <option v-for="(item,index) in emotions_arr" :key="index" :value="index" >{{item}}</option>
+          </select>
         </div>
       </div>
       <div class="row">
@@ -44,9 +43,9 @@
       </div>
       <div class="row">
         <label class="form-label">내용</label>
-        <textarea v-model="select_data.content" class="form-control textarea-size"></textarea>
+        <textarea v-model="select_data.content" class="form-control textarea-size"  rows="20"></textarea>
       </div>
-      <div class="row">
+      <!-- <div class="row">
         <div class="col-2">
           <label class="form-label">작성자</label>
           <input v-model="select_data.creator" class="form-control" readonly />
@@ -63,8 +62,7 @@
           <label class="form-label">수정일</label>
           <input v-model="select_data.updatedate" class="form-control" readonly />
         </div>
-      </div>
-    </div>
+      </div> -->
     </div>
   </template>
   
@@ -76,6 +74,7 @@
   name: "edit-view",
     data () {
         return {
+          emotions_arr : ["😎 즐거워","🥰 행복해","😶 그냥그래","😭 너무슬퍼","😡 화가나"]
         }
     },
     computed : {
@@ -86,11 +85,13 @@
         // }
     },
     mounted () {
+      console.log(this.select_data)
     },
     methods : {
       ...mapActions(useListDataStore,['editData', 'getList', 'clearSelectData', 'selectedData']),
         async edit_save (){
-          await axios.post('http://39.123.45.45:3002/savereport',{
+          console.log('editSave!!', this.select_data)
+          await axios.post('http://39.123.45.45:3002/saveDiaryItem',{
             param : this.select_data
           }).then((response)=>{
             if(response.data.msg == 'Created'){// id를 안보낼 때 => 신규 id 반환.
@@ -115,7 +116,8 @@
         },
         async del_data(){
           if(confirm("삭제할까요?")){
-            await axios.post('http://39.123.45.45:3002/delreport',{
+            console.log(this.select_data.id)
+            await axios.post('http://39.123.45.45:3002/deleteDiaryItem',{
               param : {
                 id : this.select_data.id
               }
@@ -139,5 +141,25 @@
   </script>
   
   <style>
-  
+  .diary-edit-box {
+    background-color: #edb6e7b3;
+    margin-top: 50px;
+  }
+
+  .btn-edit {
+    width: auto;
+    border: 1px solid rgb(192, 106, 192);
+    border-radius: 3px;
+    margin-right: 3px;
+    color: rgb(192, 106, 192);
+    /* background-color: violet; */
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: rgb(192, 106, 192);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: violet;
+  }
+
+  .row-flex-right {
+    justify-content: right;
+  }
   </style>

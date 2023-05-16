@@ -6,7 +6,8 @@ export const useListDataStore = defineStore("listdata",{
         //vue data 부분, vue에서 사용/저장 가능.
         data_arr : [],
         select_data : {},
-        diaryDay_arr : []
+        diaryDay_arr : [],
+        profile_data : {id : 'su', name : '수빈'}
     }),
     getters : {
 
@@ -14,52 +15,99 @@ export const useListDataStore = defineStore("listdata",{
     actions : {
         // vue methods 부분
         // sotre의 데이터는 뷰에서 사용은 불가, 수정은 여기 actions에서.
+        async signInDiary(data){
+            // npm install vue-cookies
+            // 확인해서 로그인 결과 login-view에 return 하기
+            console.log(data);
+            let result = await axios.post('http://39.123.45.45:3002/login',{
+                param : data
+            });
+            //,{ withCredentials:true }
+            console.log(result);
+            return true;
+        },
+        async signUpDiary(data){
+            // 확인해서 회원가입 결과 login-view에 return 하기
+            console.log(data);
+            let result = await axios.post('http://39.123.45.45:3002/signin',{
+                param : data
+            });
+            console.log(result);
+            return true;
+        },
+        async ReMovePW(id){
+            // profile view에서 id 보내면 패스워드 초기화 후 result 반환 (이후 다시 패스워드 설정할 수 있도록..)
+            console.log(id);
+            // let result = await axios.post('http://39.123.45.45:3002/signin',{
+            //     param : data
+            // });
+            return true;
+        },
+        async ReSetPW(data){
+            // profile view에서 패스워드 재설정, 결과 값 리턴할 것.
+            console.log(data);
+            return true;
+        },
         writeDiary (date) { //calendarView에서 선택한 날짜의 값을 가져옴.
             this.select_data = {
-                workday : date
+                writetime : date
             };
         },
         addData (data){ //addDataView를 위한 페이지.. 사용 안함.
-            console.log("store ",data);
+            // console.log("store ",data);
             this.data_arr.push(data);
-            console.log("store ",this.data_arr);
+            // console.log("store ",this.data_arr);
 
         },
-        editData (item) { // listView에서 선택 된 게시글의 배열
-            this.select_data = item;
+        async editData (item) { // listView에서 선택 된 게시글의 배열
+            // console.log("확인~~",item.id)
+            let result = await axios.post('http://39.123.45.45:3002/getDiaryItem',{
+                param : { id : item.id }
+            });
+            // console.log(result)
+            let data = result.data[0];
+            // console.log(data)
+            data.writetime = data.writetime ? dayjs(data.writetime).format('YYYY-MM-DD'):null;
+            data.createtime = data.createtime ? dayjs(data.createtime).format('YYYY-MM-DD HH:mm:ss'):null;
+            data.updatetime = data.updatetime ? dayjs(data.updatetime).format('YYYY-MM-DD HH:mm:ss'):null;
+            this.select_data = data
+            
         },
-        async getList() { // db에서 저장된 배열 값 가져오기.. 전체 List 및 일기가 있는 날짜 확인용 배열(diaryDay_arr)생성.
-            let result = await axios.get('http://39.123.45.45:3002/getreport');
+        async getList() { // db에서 저장된 배열 값 가져오기.. 전체 List ... 이후 로그인 되면 아이디 값으로 가져올 것..
+            let result = await axios.get('http://39.123.45.45:3002/diaryList'); //getReport => diaryList 대체함.
             //axios get = axios.get('URL'); // params 
             //axios post = axios.post('URL',data); // body
+
+            // 일기가 있는 날짜 확인용 배열(diaryDay_arr)생성.
+            // console.log(result)
             let diaryDay_arr = [];
             result.data.map((item)=>{
-                item.workday = item.workday ? dayjs(item.workday).format('YYYY-MM-DD'):null;
-                item.createdate = item.createdate ? dayjs(item.createdate).format('YYYY-MM-DD HH:mm:ss'):null;
-                item.updatedate = item.updatedate ? dayjs(item.updatedate).format('YYYY-MM-DD HH:mm:ss'):null;
+                item.writetime = item.writetime ? dayjs(item.writetime).format('YYYY-MM-DD'):null;
+                item.createtime = item.createtime ? dayjs(item.createtime).format('YYYY-MM-DD HH:mm:ss'):null;
+                item.updatetime = item.updatetime ? dayjs(item.updatetime).format('YYYY-MM-DD HH:mm:ss'):null;
 
                 // diaryDay_arr (일기용 배열)
                 diaryDay_arr.push({
                     id : item.id,
-                    workday : item.workday
+                    writetime : item.writetime
                 })
             })
             this.data_arr = result.data;
             this.diaryDay_arr = diaryDay_arr;
-            // console.log(this.data_arr);
-            console.log("여긴 store",this.diaryDay_arr);
+            console.log(this.data_arr);
+            // console.log("여긴 store 확인",this.diaryDay_arr);
         },
         clearSelectData (){ // listView에서 선택 했던 배열을 초기화용
             this.select_data = {};
         },
         async selectedData (id) { // editView에서 수정 또는 저장이 된 후, 해당 페이지에 수정 된 데이터를 id값으로 불러와 리프레쉬..
-            let result = await axios.post('http://39.123.45.45:3002/getdetail',{
-                param : [id]
+            let result = await axios.post('http://39.123.45.45:3002/getDiaryItem',{
+                param : { id : id}
             });
             let data = result.data[0];
-            data.workday = data.workday ? dayjs(data.workday).format('YYYY-MM-DD'):null;
-            data.createdate = data.createdate ? dayjs(data.createdate).format('YYYY-MM-DD HH:mm:ss'):null;
-            data.updatedate = data.updatedate ? dayjs(data.updatedate).format('YYYY-MM-DD HH:mm:ss'):null;
+            data.writetime = data.writetime ? dayjs(data.writetime).format('YYYY-MM-DD'):null;
+            data.createtime = data.createtime ? dayjs(data.createtime).format('YYYY-MM-DD HH:mm:ss'):null;
+            data.updatetime = data.updatetime ? dayjs(data.updatetime).format('YYYY-MM-DD HH:mm:ss'):null;
             this.select_data = data
         },
     }
