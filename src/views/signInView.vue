@@ -9,6 +9,7 @@
           id="floatingInput"
           class="form-control"
           v-model="signInID"
+          v-on:keyup.enter="keyEnter()"
         />
         <label for="floatingInput">ID</label>
       </div>
@@ -20,6 +21,7 @@
           class="form-control"
           id="floatingName"
           v-model="signUpName"
+          v-on:keyup.enter="keyEnter()"
         />
         <label for="floatingName">name</label>
       </div>
@@ -30,6 +32,7 @@
           class="form-control"
           id="floatingPassword"
           v-model="signInPW"
+          v-on:keyup.enter="keyEnter()"
         />
         <label for="floatingPassword">Password</label>
       </div>
@@ -40,15 +43,27 @@
       >
         Sign in
       </button>
-      <label v-show="signUP" class="w-100 mb-2 btn btn-lg btn-signUp" @click="signUp()" >Sign Up</label>
-      <span v-show="!signUP" class="h6 fw-light text-decoration-underline" role="button" @click="signUP = true">sign Up</span>
+      <label
+        v-show="signUP"
+        class="w-100 mb-2 btn btn-lg btn-signUp"
+        @click="signUp()"
+        >Sign Up</label
+      >
+      <span
+        v-show="!signUP"
+        class="h6 fw-light text-decoration-underline"
+        role="button"
+        @click="signUP = true"
+        >sign Up</span
+      >
     </section>
   </div>
 </template>
-  
+
 <script>
-import { mapActions } from "pinia"; //store사용 준비, state/actions를 사용.
+import { mapActions, mapState } from "pinia"; //store사용 준비, state/actions를 사용.
 import { useListDataStore } from "../stores/listdata.js";
+// import axios from 'axios'
 export default {
   name: "signIn-view",
   data() {
@@ -56,15 +71,32 @@ export default {
       signInID: "",
       signInPW: "",
       signUpName: "",
-      signUP : false
+      signUP: false,
     };
   },
+  created() {
+    this.getConfirm().then(() => {
+      if (this.logined) {
+        //로그인 상태(true) 확인 후 로그인 상태면 캘린더로 이동.
+        this.$router.push({
+          name: "calendar-view",
+        });
+      }
+    });
+  },
   computed: {
-    // ...mapState(useListDataStore, ["data_arr"]), //mapState => store의 state 사용
+    ...mapState(useListDataStore, ["logined"]), //mapState => store의 state 사용
   },
   methods: {
-    ...mapActions(useListDataStore, ["signInDiary","signUpDiary"]), //store의 actions 사용 (로그인/회원가입)
-    signIn() {
+    ...mapActions(useListDataStore, [
+      "signInDiary",
+      "signUpDiary",
+      "getConfirm",
+    ]), //store의 actions 사용 (로그인/회원가입)
+    keyEnter() {
+      this.signUP == true ? this.signUp() : this.signIn();
+    },
+    async signIn() {
       if (!this.signInID) {
         alert("ID를 입력하세요.");
         document.getElementById("floatingInput").focus();
@@ -77,7 +109,7 @@ export default {
       }
       let data = {
         email: this.signInID,
-        pw: this.signInPW
+        pw: this.signInPW,
       };
       let check = this.signInDiary(data);
       this.signInID = "";
@@ -85,10 +117,11 @@ export default {
       if (check) {
         //로그인 성공일 경우만 캘랜더 뷰로 이동
         // 로그인 여부에 따라 페이지 접근 권한 막기..
-        this.$router.push({
-          name: "calendar-view", //캘린더 페이지로
-        });
-        alert("로그인");
+        // this.$router.push({
+        //   name: "calendar-view", //캘린더 페이지로
+        // });
+        location.href = "/"; //캘린더 페이지로 새로고침 이동(created), 로그인으로 가져온 profile 데이터 재로드
+        alert("Logined");
         //세션/로컬 스토리지에 로그인 아이디/이름/로그인T값 저장
       }
     },
@@ -110,27 +143,25 @@ export default {
       }
       let data = {
         email: this.signInID,
-        name : this.signUpName,
-        pw: this.signInPW
+        name: this.signUpName,
+        pw: this.signInPW,
       };
       let check = this.signUpDiary(data);
       this.signInID = "";
       this.signInPW = "";
       this.signUpName = "";
       if (check) {
-        //로그인 성공일 경우만 캘랜더 뷰로 이동
-        // 로그인 여부에 따라 페이지 접근 권한 막기..
         this.signUP = false;
         this.$router.push({
           name: "signIn-view", //로그인 페이지로
         });
-        // alert("회원가입 완료");
+        alert("회원가입 완료");
       }
-    }
+    },
   },
 };
 </script>
-  
+
 <style>
 .signIn-box {
   height: 100%;
@@ -163,7 +194,7 @@ export default {
 
 .btn-signUp {
   color: #fff;
-  background-color:plum;
+  background-color: plum;
   --bs-btn-hover-color: #fff;
   --bs-btn-hover-bg: rgb(192, 106, 192);
   --bs-btn-active-color: #fff;

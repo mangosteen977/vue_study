@@ -19,7 +19,7 @@
         <tr v-for="item in data_arr" :key="item.id" @dblclick="edit_Data(item)">
           <!-- <td>{{ item.id }}</td> -->
           <td>{{ item.writetime }}</td>
-          <td>{{ this.emotions_arr[item.emotion] }}</td>
+          <td>{{ emotions_arr[item.emotion] }}</td>
           <td>{{ item.title }}</td>
           <!-- <td>{{ item.content }}</td> -->
         </tr>

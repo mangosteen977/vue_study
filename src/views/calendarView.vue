@@ -28,10 +28,21 @@
           <label
             v-for="(da, i) in arr_dates"
             :key="i"
-            :class="'diary_' + da[3]"
-            @click="write_diary(da)"
-            >{{ da[0] }}</label
+            @click="write_new_diary(da)"
           >
+            {{ da[0] }}
+            <span v-show="da[4] != null" :class="'diary_' + da[3]">
+              <span
+                v-show="da[4] != null"
+                v-for="(emotion, i) in da[4]"
+                :key="i"
+                @click="write_diary(emotion.id, $event)"
+                :title="emotion.title"
+              >
+                {{ emotions_arr[emotion.emotion] }}
+              </span>
+            </span>
+          </label>
         </div>
       </div>
     </section>
@@ -58,8 +69,10 @@ export default {
       arr_months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
       select_month: "",
       select_year: "",
+      emotions_arr: ["😎", "🥰", "😶", "😭", "😡"],
     };
   },
+  created() {},
   computed: {
     ...mapState(useListDataStore, ["diaryDay_arr"]),
   },
@@ -87,7 +100,7 @@ export default {
       }
       for (let i = 0; i < last_date; i++) {
         // 일기 유무 확인 전 해당 월의 배열 만들기
-        // [일,요일,날짜,일기유무(T/F),(id)]
+        // [일,요일,날짜,일기유무(T/F),[이모지 배열]]
         let date_day = new Date(
           this.year + "-" + this.month + "-" + i + 1
         ).getDay(); // 해당 일의 요일
@@ -95,15 +108,22 @@ export default {
           String(this.year + "-" + this.month + "-" + (i + 1))
         ).format("YYYY-MM-DD"); // yyyy-mm-dd
         let check_diary = false; // 일기 유무
-        let diary_id = ""; // 다이어리 id
+        let diary_emotion = []; // [{다이어리 id, 이모션 값, title}]
         // 일기 유무 확인.. 일기 유무 및 id값을 넣기..
         this.diaryDay_arr.map((val) => {
           if (val.writetime == date_format) {
             check_diary = true;
-            diary_id = val.id;
+            diary_emotion.push({
+              id: val.id,
+              emotion: val.emotion,
+              title: val.title,
+            });
           }
         });
-        let date = [i + 1, date_day, date_format, check_diary, diary_id];
+        if (diary_emotion.length == 0) {
+          diary_emotion = null;
+        }
+        let date = [i + 1, date_day, date_format, check_diary, diary_emotion];
         this.arr_dates.push(date);
       }
       if (this.arr_dates.length < 42) {
@@ -135,6 +155,7 @@ export default {
       );
       // store에 DB 가져온 뒤 캘린더 배열 만드는 함수 호출
       this.getList().then(() => {
+        console.log("mounted__getlist", this.diaryDay_arr);
         this.getCalendars();
       });
     },
@@ -144,28 +165,31 @@ export default {
       this.getCalendars();
     },
     getCalendars_by_selected_month() {
+      //event e.target
       document.getElementById("mon" + this.month).classList.remove("thisMonth");
       document.getElementById("mon" + this.select_month).className =
         "thisMonth";
       this.month = this.select_month;
       this.getCalendars();
     },
-    write_diary(date) {
-      if (date[2] && !date[3]) {
-        //해당 날짜에 작성 된 일기가 없을 경우, store writeDiary에 선택 된 날짜를 보냄.(신규 작성)
-        this.writeDiary(date[2]);
-        this.$router.push({
-          // editView로 이동..
-          name: "edit-view",
-        });
-      } else if (date[2] && date[3]) {
-        //해당 날짜에 작성 된 일기가 있을 경우, store selectedData에 선택 된 날짜의 id를 보냄.(기존 글)
-        this.selectedData(date[4]); // id값
-        this.$router.push({
-          // editView로 이동..
-          name: "diary-view",
-        });
-      }
+    write_diary(id, e) {
+      //해당 날짜에 작성 된 일기가 있을 경우, store selectedData에 선택 된 날짜의 id를 보냄.(기존 글)
+      e.stopPropagation(); // label 객체로 bubbling 막기..
+      this.selectedData(id); // 선택한 id값
+      this.$router.push({
+        // editView로 이동..
+        name: "diary-view",
+      });
+    },
+    write_new_diary(date) {
+      // if (date[2] && !date[3]) {
+      // store writeDiary에 선택 된 날짜를 보냄.(신규 작성)
+      this.writeDiary(date[2]);
+      this.$router.push({
+        // editView로 이동..
+        name: "edit-view",
+      });
+      // }
     },
   },
 };
@@ -283,8 +307,11 @@ body {
 .dayDate > div > label {
   width: 90px;
   height: 40px;
-  text-align: center;
-  line-height: 40px;
+  padding: 5px;
+  font-size: 0.8em;
+  /* text-align: center;
+  line-height: 40px; */
+  position: relative;
 }
 .date > label {
   cursor: pointer;
@@ -301,7 +328,33 @@ body {
     text-decoration-thickness: 2px;
     text-decoration-color: darkmagenta;
     text-decoration-line: underline;
+    border-bottom: 1vh solid #db7093a3;
+    display: block;
   */
-  border-bottom: 1vh solid #db7093a3;
+  width: 40px;
+  height: 20px;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 15;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+.diary_true:hover {
+  overflow: visible;
+  width: auto;
+  height: auto;
+  background-color: #ffffff5b;
+  border-bottom: 3px solid plum;
+  display: block;
+}
+.diary_true > span {
+  line-height: normal;
+  font-size: 1.5em;
+}
+.diary_true > span:hover {
+  font-size: 2em;
 }
 </style>
