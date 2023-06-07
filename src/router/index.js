@@ -10,61 +10,66 @@ import listView from "../views/listView.vue";
 import diaryView from "../views/diaryView.vue";
 import profileView from "../views/profileView.vue";
 
-// 각 페이지 이동 사이 로그인 확인(store getConfirm이용..)
+// 각 페이지 이동 사이 로그인 여부 확인(store getConfirm)
 function confirm_login(to, from, next) {
+  // 해당 path 진입 전 ["함수"] 확인
   //from : 현재 라우터 페이지, to : 클릭한 라우터 페이지, next : 이동할 라우터 페이지
   // const useList = useListDataStore();
   if (VueCookies.get("userStatus")) {
-    //login이다. corfirm으로 다시 확인 필요..;
     next();
   } else {
-    // useList.logOut(); 나중에 store logout 만들기.;
     alert("로그인 하세요.");
     next("/signIn");
   }
 }
-
+function confirm_logout(to, from, next) {
+  if (VueCookies.get("userStatus")) {
+    next("/");
+  } else {
+    next();
+  }
+}
 const routes = [
   {
     path: "/signIn",
     name: "signIn-view",
-    //로그인 일 때 딴데 가게..
+    beforeEnter: [confirm_logout],
     component: signInView,
   },
   {
     path: "/",
     name: "calendar-view",
-    beforeEnter: [confirm_login], // 해당 path 진입 전 ["함수"] 확인
+    beforeEnter: [confirm_login],
     component: calendarView,
   },
   {
     path: "/edit",
     name: "edit-view",
-    beforeEnter: [confirm_login], // 해당 path 진입 전 ["함수"] 확인
+    beforeEnter: [confirm_login],
     component: editDataView,
   },
   {
     path: "/list",
     name: "list-view",
-    beforeEnter: [confirm_login], // 해당 path 진입 전 ["함수"] 확인
+    beforeEnter: [confirm_login],
     component: listDataView,
   },
   {
     path: "/list2",
     name: "list2-view",
-    beforeEnter: [confirm_login], // 해당 path 진입 전 ["함수"] 확인
+    beforeEnter: [confirm_login],
     component: listView,
   },
   {
     path: "/diary",
     name: "diary-view",
-    beforeEnter: [confirm_login], // 해당 path 진입 전 ["함수"] 확인
+    beforeEnter: [confirm_login],
     component: diaryView,
   },
   {
     path: "/profile",
     name: "profile-view",
-    beforeEnter: [confirm_login], // 해당 path 진입 전 ["함수"] 확인
+    beforeEnter: [confirm_login],
     component: profileView,
   },
 ];

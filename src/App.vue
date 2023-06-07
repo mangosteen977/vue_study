@@ -38,7 +38,7 @@
               <li class="nav-item" v-if="logined">
                 <router-link class="nav-link" to="/list2">List2</router-link>
               </li>
-              <li class="nav-item" v-if="logined">
+              <li class="nav-item" v-if="logined" @click="resetEditArr()">
                 <router-link class="nav-link" to="/edit">Write</router-link>
               </li>
               <li class="nav-item" v-if="logined">
@@ -78,7 +78,7 @@ export default {
     this.getConfirm();
   },
   methods: {
-    ...mapActions(useListDataStore, ["getConfirm"]), //store의 actions 사용 (로그인/회원가입)
+    ...mapActions(useListDataStore, ["getConfirm", "writeDiary"]), //store의 actions 사용 (로그인/회원가입)
     getCookie() {
       //로그인으로 저장 된 쿠키 값 체크..
       let getCookie = document.cookie;
@@ -102,6 +102,10 @@ export default {
         this.$cookies.remove("userStatus");
         this.getConfirm();
       }
+    },
+    resetEditArr() {
+      // store writeDiary에 선택 된 날짜를 보냄.(신규 작성)
+      this.writeDiary();
     },
   },
 };

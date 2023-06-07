@@ -83,17 +83,20 @@ export const useListDataStore = defineStore("listdata", {
       return true;
     },
     writeDiary(date) {
-      //calendarView에서 선택한 날짜의 값을 가져옴.
+      //date : calendarView에서 선택한 날짜의 값
+      //없을 경우(nav에서 write메뉴 선택 => 새로 작성) 오늘 날짜 값
+      let newDate = date ? date : dayjs(new Date()).format("YYYY-MM-DD");
+      // console.log("newDate", newDate);
       this.select_data = {
-        writetime: date,
+        writetime: newDate,
       };
     },
-    addData(data) {
-      //addDataView를 위한 페이지.. 사용 안함.
-      // console.log("store ",data);
-      this.data_arr.push(data);
-      // console.log("store ",this.data_arr);
-    },
+    // addData(data) {
+    //   //addDataView를 위한 페이지.. 사용 안함.
+    //   // console.log("store ",data);
+    //   this.data_arr.push(data);
+    //   // console.log("store ",this.data_arr);
+    // },
     async editData(item) {
       // listView에서 선택 된 게시글의 배열
       // console.log("확인~~",item.id)
@@ -117,10 +120,12 @@ export const useListDataStore = defineStore("listdata", {
     async getList() {
       // db에서 저장된 배열 값 가져오기.. 전체 List ... 로그인 아이디(id고유값)으로 가져올 것..
       let result = await axios.get("/api/diaryList"); //getReport => diaryList 대체함, 전체 모든 데이터
-      console.log(this.profile_data);
-      // let result = await axios.post("/api/diaryList", {
-      //   param: { userid: this.profile_data.id },
+      // console.log("체크 : ", this.profile_data.id);
+      console.log("체크 : ", result);
+      // let result2 = await axios.post("/api/diaryList", {
+      //   param: { writerid: this.profile_data.id },
       // });
+      // console.log("result2", result2);
       //axios get = axios.get('URL'); // params
       //axios post = axios.post('URL',data); // body
 
@@ -169,6 +174,7 @@ export const useListDataStore = defineStore("listdata", {
       data.updatetime = data.updatetime
         ? dayjs(data.updatetime).format("YYYY-MM-DD HH:mm:ss")
         : null;
+      data.writerid = this.profile_data.id;
       this.select_data = data;
     },
   },

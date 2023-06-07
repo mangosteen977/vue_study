@@ -10,9 +10,9 @@
       <button @click="clear_all()" class="btn btn-sm col-1 btn-edit">
         모든 내용 지우기
       </button>
-      <button @click="del_data()" class="btn btn-sm col-1 btn-edit">
+      <!-- <button @click="del_data()" class="btn btn-sm col-1 btn-edit">
         일기 삭제
-      </button>
+      </button> -->
     </div>
     <div class="row">
       <div class="col-3">
@@ -91,7 +91,7 @@ export default {
       "selectedData",
     ]),
     async edit_save() {
-      console.log(this.select_data, "이모션 확인용");
+      // console.log(this.select_data, "이모션 확인용");
       // console.log('editSave!!', this.select_data)
       await axios
         .post("/api/saveDiaryItem", {
@@ -121,32 +121,32 @@ export default {
     clear_all() {
       this.clearSelectData();
     },
-    async del_data() {
-      if (confirm("삭제할까요?")) {
-        console.log(this.select_data.id);
-        await axios
-          .post("/api/deleteDiaryItem", {
-            param: {
-              id: this.select_data.id,
-            },
-          })
-          .then((response) => {
-            if (response.data.msg == "Deleted") {
-              alert("삭제 완료!");
-              this.clearSelectData(); // store의 수정 중 데이터 삭제
-              this.$router.push({
-                // listview로 이동
-                name: "list-view",
-              });
-            } else {
-              alert("삭제 실패!");
-            }
-          })
-          .catch((e) => {
-            console.log(e);
-          });
-      }
-    },
+    // async del_data() {
+    //   if (confirm("삭제할까요?")) {
+    //     console.log(this.select_data.id);
+    //     await axios
+    //       .post("/api/deleteDiaryItem", {
+    //         param: {
+    //           id: this.select_data.id,
+    //         },
+    //       })
+    //       .then((response) => {
+    //         if (response.data.msg == "Deleted") {
+    //           alert("삭제 완료!");
+    //           this.clearSelectData(); // store의 수정 중 데이터 삭제
+    //           this.$router.push({
+    //             // listview로 이동
+    //             name: "list-view",
+    //           });
+    //         } else {
+    //           alert("삭제 실패!");
+    //         }
+    //       })
+    //       .catch((e) => {
+    //         console.log(e);
+    //       });
+    //   }
+    // },
   },
 };
 </script>
